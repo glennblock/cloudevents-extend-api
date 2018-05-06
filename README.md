@@ -2,9 +2,9 @@
 
 This repository provides a [webtask middleware](https://goextend.io/docs/middleware) that supports a simple programming model for [CloudEvents](https://github.com/cloudevents). It can be used by [Extend](https://goextend.io) and [Auth0 Webtask](https://webtask.io) users to quickly and simply implement CloudEvent consumers and optionally secure it with HTTP basic authentication. 
 
-### Gettig started 
+### Getting started 
 
-The JavaScript programming model for CloudEvents implemented in this module requires the user to implement a class with methods representing the supported CloudEvents events. At runtime, messages will be dispatched to specific methods of the class based on the `eventType` context property of the event. The class can implement any number of methods for different `eventType` values. 
+The JavaScript programming model for CloudEvents implemented in this module requires the user to implement a function which accepts a `subscribe` method as a param. The user then calls `subscribe` for each event they want to handle, with the first param being the `eventType` and the second param being a handler. At runtime, messages will be dispatched based on `eventType` context property of the event. 
 
 The example below shows how to create a CloudEvent handler on [Auth0 Webtasks](https://webtask.io), but it is just as well applicable to [Extend](https://goextend.io) deployments. 
 
@@ -13,11 +13,10 @@ First, write the webtask script:
 ```
 cat > cloud-events-handler.js <<EOF
 'use strict';
-module.exports = class CloudEventsHandler {
-
-  'io.goextend.helloWorld'(event) {
+module.exports = subscribe => {
+  subscribe('io.goextend.helloWorld', event=> {
     console.log("Hello, world event received!");
-  }
+  });
 
   // Add other events here as needed
 };

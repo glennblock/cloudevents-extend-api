@@ -16,8 +16,6 @@ module.exports = () => {
           if (e) return next(e);
           
           instance = new Func();
-          instance.secrets = req.webtaskContext.secrets;
-          instance.meta = req.webtaskContext.meta;
           instance(subscribe);
           return handleRequest();
         });
@@ -54,7 +52,13 @@ module.exports = () => {
             res.writeHead(201)
             res.end(); 
           }
-          return handler(req.body, (e,d) => {
+          var ctx = {
+            event: req.body,
+            secrets: req.webtaskContext.secrets,
+            meta: req.webtaskContext.meta
+          };
+
+          return handler(ctx, (e,d) => {
             if (e) return next(e);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             return res.end(JSON.stringify(d));
