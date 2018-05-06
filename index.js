@@ -35,7 +35,6 @@ module.exports = () => {
           }
         }
         let eventType = req.body.eventType;
-        console.log(eventType);
         if (!eventType) {
           let error = new Error(`Malformed CloudEvent message. The required 'eventType' property is not specified.`);
           error.statusCode = 400;
