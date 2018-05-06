@@ -1,6 +1,11 @@
 'use strict';
 
 let instance;
+var subscriptions = {};
+
+var subscribe = (eventType, cb) => {
+  subscriptions[eventType] = cb;
+} 
 
 module.exports = () => {
     return (req, res, next) => {
@@ -13,7 +18,7 @@ module.exports = () => {
           instance = new Func();
           instance.secrets = req.webtaskContext.secrets;
           instance.meta = req.webtaskContext.meta;
-          
+          instance(subscribe);
           return handleRequest();
         });
       }
@@ -31,23 +36,25 @@ module.exports = () => {
             return next(error);
           }
         }
-        let method = req.body.eventType;
-        if (!method) {
+        let eventType = req.body.eventType;
+        console.log(eventType);
+        if (!eventType) {
           let error = new Error(`Malformed CloudEvent message. The required 'eventType' property is not specified.`);
           error.statusCode = 400;
           return next(error);
         }
-        if (typeof instance[method] !== 'function') {
-          let error = new Error(`Unuspported eventType: ${method}.`);
+        var handler = subscriptions[eventType];
+        if (handler == null || typeof handler !== 'function') {
+          let error = new Error(`Unuspported eventType: ${eventType}.`);
           error.statusCode = 501;
           return next(error);
         }
         else {
-          if (instance[method].length === 1) {
+          if (handler.length === 1) {
             res.writeHead(201)
             res.end(); 
           }
-          return instance[method](req.body, (e,d) => {
+          return handler(req.body, (e,d) => {
             if (e) return next(e);
             res.writeHead(200, { 'Content-Type': 'application/json' });
             return res.end(JSON.stringify(d));
